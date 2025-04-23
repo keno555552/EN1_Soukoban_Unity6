@@ -1,85 +1,132 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 public class GameManagerScript : MonoBehaviour
 {
     /// 定義
     // 配列を配置
-    int[] map;
+    private int[,] map;
+    private GameObject[,] objectMap;
+    public GameObject playerPrefab;
+    //[SerializeField, Range(1, 5)] private float speed;
+    //[SerializeField] private float attack;
+    //[SerializeField] private float health;
+    public GameObject boxPrefab;
 
-    private void PrintArray()
-    {
-        string debugText = "";
-        for (int i = 0; i < map.Length; i++)
-        {
-            // 文字列に変換して結合
-            debugText += map[i].ToString() + ",";
-        }
-        // 結合した文字列を出力
-        Debug.Log(debugText);
-    }
+    //private void PrintArray()
+    //{
+    //    string debugText = "";
+    //    for (int y = 0; y < map.GetLength(0); y++)
+    //    {
+    //        for (int x = 0; x < map.GetLength(1); x++)
+    //        {
+    //            // 文字列に変換して結合
+    //            debugText += map[y, x].ToString() + ",";
+    //        }
+    //        // 改行を追加
+    //        debugText += "\n";
+    //    }
+    //    // 結合した文字列を出力
+    //    Debug.Log(debugText);
+    //}
 
-    int GetPlayerIndex()
-    {
-        for (int i = 0; i < map.Length; i++)
-        {
-            if (map[i] == 1)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     /// <summary>
-    /// 移動する数値を指定のインデックスに移動させる
+    /// 二次元配列のインデックスから、ワールド座標を取得する
     /// </summary>
-    /// <param name="number">移動したい数字</param>
-    /// <param name="box">ボックスの数字</param>
-    /// <param name="moveFrom">どこから移動</param>
-    /// <param name="moveTo">移動したい場所</param>
-    /// <returns></returns>
-    bool MoveNumber(int number, int box, int moveFrom, int moveTo)
+    /// <param name="xIndex"></param>
+    /// <param name="yIndex"></param>
+    /// <returns>世界空間上の座標</returns>
+    Vector3 GetPositionByIndex(int xIndex, int yIndex)
     {
-        // 移動先が範囲外なら移動不可
-        if (moveTo < 0 || moveTo >= map.Length) { return false; }
-        // 移動先に2(箱)が居たら
-        if (map[moveTo] == box)
+        return new Vector3(xIndex, map.GetLength(0) - yIndex, 0);
+    }
+
+
+    Vector2Int GetPlayerIndex()
+    {
+        for (int y = 0; y < objectMap.GetLength(0); y++)
         {
-            // どの方向へ移動するかを算出
-            int velocity = moveTo - moveFrom;
-            // プレイヤーの移動先から、さらに先へ2(箱)を移動させる。
-            // 箱の移動処理。MoveNumberメソッド内でMoveNumberメソッドを
-            // 呼び、処理が再帰している。移動不可かをboolで記録
-            bool sussess = MoveNumber(box, box, moveTo, moveTo + velocity);
-            // もし箱が移動失敗したら、プレイヤーの移動も失敗
-            if (!sussess) { return false; }
+            for (int x = 0; x < objectMap.GetLength(1); x++)
+            {
+                if (objectMap[y, x] == null) { continue; }
+                if (objectMap[y, x].tag == "Player")
+                {
+                    return new Vector2Int(x, y);
+                }
+            }
         }
-        // プレイヤー・箱関わらずの移動処理
-        map[moveTo] = number;
-        map[moveFrom] = 0;
+        return new Vector2Int(-1, -1);
+    }
+
+    bool MoveObject(Vector2Int moveFrom, Vector2Int moveTo)
+    {
+        // 二次元配列に対応
+        if (moveTo.y < 0 || moveTo.y >= objectMap.GetLength(0)) { return false; }
+        if (moveTo.x < 0 || moveTo.x >= objectMap.GetLength(1)) { return false; }
+
+        // 配列外参照防止
+        // Boxタグを持つていたら再帰関数
+        if (objectMap[moveTo.y, moveTo.x] != null && objectMap[moveTo.y, moveTo.x].tag == "Box")
+        {
+            Vector2Int velocity = moveTo - moveFrom;
+            bool success = MoveObject(moveTo, moveTo + velocity);
+            if (!success) { return false; }
+        }
+
+        // 移動処理
+        objectMap[moveFrom.y, moveFrom.x].transform.position =
+            GetPositionByIndex(moveTo.x, moveTo.y);
+        objectMap[moveTo.y, moveTo.x] = objectMap[moveFrom.y, moveFrom.x];
+        objectMap[moveFrom.y, moveFrom.x] = null;
         return true;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        //public GameObject playerPrefab;
         // 配列の実態の作成と初期化
-        map = new int[] { 0, 0, 2, 1, 0, 2, 0, 2, 0 }; // 配列の初期化
-        PrintArray();
+        map = new int[,] {
+                { 2,2,2,2,2,2,2},
+                { 2,0,0,0,0,0,2},
+                { 0,0,0,0,1,0,0},
+                { 2,0,0,0,2,0,2},
+                { 2,0,0,0,0,0,2},
+                { 2,0,0,0,0,0,2},
+                { 2,2,2,2,2,2,2} };
 
-        //// Debug.Log("Hello world"); // 配列の初期化確認
-        //string debugText = "";
-        //for (int i = 0; i < map.Length; i++)
-        //{g
-        //    ////　要素数を一つずつ出力
-        //    //Debug.Log(map[i] + ",");
-        //
-        //    // 文字列に変換して結合
-        //    debugText += map[i].ToString() + ",";
-        //}
-        //
-        //// 結合した文字列を出力
-        //Debug.Log(debugText);
+        //PrintArray();
+
+        objectMap = new GameObject
+        [
+            map.GetLength(0),
+            map.GetLength(1)
+        ];
+
+        for (int y = 0; y < map.GetLength(0); y++)
+        {
+            for (int x = 0; x < map.GetLength(1); x++)
+            {
+                if (map[y, x] == 1)
+                {
+                    objectMap[y, x] = Instantiate(
+                        playerPrefab,
+                       GetPositionByIndex(x,y),
+                        Quaternion.identity
+                    );
+                }
+                if (map[y, x] == 2)
+                {
+                    objectMap[y, x] = Instantiate(
+                        boxPrefab,
+                        GetPositionByIndex(x, y),
+                        Quaternion.identity
+                    );
+                }
+            }
+
+        }
     }
 
     // Update is called once per frame
@@ -87,51 +134,31 @@ public class GameManagerScript : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            // 1. をここから記載
-            // 見つからなかったのために-1で初期化
-            int playerIndex = GetPlayerIndex();
-            //　要素数をmap.Lengthで取得
-            for (int i = 0; i < map.Length; i++)
-            {
-                if (map[i] == 1)
-                {
-                    playerIndex = i;
-                    break;
-
-                }
-            }
-
-            /*
-               playerIndex+1のインデックスの物と交換するので、
-               playerIndex-1よりさらに小さいインデックスの時
-               のみ交換処理を行なう
-             */
-            MoveNumber(1, 2, playerIndex, playerIndex + 1);
-            PrintArray();
+            Vector2Int playerIndex = GetPlayerIndex();
+            MoveObject(
+                playerIndex,
+                playerIndex + new Vector2Int(1, 0));
         }
-
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            int playerIndex = GetPlayerIndex();
-            for (int i = 0; i < map.Length; i++)
-            {
-                if (map[i] == 1)
-                {
-                    playerIndex = i;
-                    break;
-
-                }
-            }
-
-            /*
-               playerIndex+1のインデックスの物と交換するので、
-               playerIndex-1よりさらに小さいインデックスの時
-               のみ交換処理を行なう
-             */
-            MoveNumber(1, 2, playerIndex, playerIndex - 1);
-            PrintArray();
+            Vector2Int playerIndex = GetPlayerIndex();
+            MoveObject(
+                playerIndex,
+                playerIndex - new Vector2Int(1, 0));
+        }
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            Vector2Int playerIndex = GetPlayerIndex();
+            MoveObject(
+                playerIndex,
+                playerIndex - new Vector2Int(0, 1));
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            Vector2Int playerIndex = GetPlayerIndex();
+            MoveObject(
+                playerIndex,
+                playerIndex + new Vector2Int(0, 1));
         }
     }
-
-
 }
