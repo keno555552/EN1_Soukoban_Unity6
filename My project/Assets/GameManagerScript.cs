@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class GameManagerScript : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class GameManagerScript : MonoBehaviour
     //[SerializeField] private float attack;
     //[SerializeField] private float health;
     public GameObject boxPrefab;
+
+    public GameObject clearText;
 
     //private void PrintArray()
     //{
@@ -30,6 +33,35 @@ public class GameManagerScript : MonoBehaviour
     //    Debug.Log(debugText);
     //}
 
+    bool IsCleard()
+    {
+        // Vector2Int形の可変長配列を作成
+        List<Vector2Int> goals = new List<Vector2Int>();
+        for(int y = 0; y < map.GetLength(0); y++)
+        {
+            for (int x = 0; x < map.GetLength(1); x++)
+            {
+                // 格納場所が否かを判断
+                if (map[y, x] == 3)
+                {
+                    goals.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        // 要素数はGoals.Countで取得
+        for (int i = 0; i < goals.Count; i++)
+        {
+            GameObject f = objectMap[goals[i].y, goals[i].x];
+            if (f == null || f.tag != "Box")
+            { 
+                // 一つでも箱がなかったら条件未達成
+                return false; 
+            }
+        }
+        // 条件未達成でなければ条件達成
+        return true;
+    }
 
     /// <summary>
     /// 二次元配列のインデックスから、ワールド座標を取得する
@@ -90,10 +122,10 @@ public class GameManagerScript : MonoBehaviour
         map = new int[,] {
                 { 2,2,2,2,2,2,2},
                 { 2,0,0,0,0,0,2},
-                { 0,0,0,0,1,0,0},
-                { 2,0,0,0,2,0,2},
-                { 2,0,0,0,0,0,2},
-                { 2,0,0,0,0,0,2},
+                { 0,0,3,0,3,0,0},
+                { 2,0,2,1,2,0,2},
+                { 2,0,0,2,0,0,2},
+                { 2,0,0,3,0,0,2},
                 { 2,2,2,2,2,2,2} };
 
         //PrintArray();
@@ -159,6 +191,18 @@ public class GameManagerScript : MonoBehaviour
             MoveObject(
                 playerIndex,
                 playerIndex + new Vector2Int(0, 1));
+        }
+
+        // ゲームクリア判定
+        if (IsCleard())
+        {
+            // ゲームオブジェクトのSetActiveメソッドを使い有効化
+            clearText.SetActive(true);
+        }
+        else
+        {
+            // ゲームオブジェクトのSetActiveメソッドを使い無効化
+            clearText.SetActive(false);
         }
     }
 }
