@@ -135,6 +135,9 @@ public class GameManagerScript : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // 解像度、ウィンドウ/フルスクリーンモードを設定
+        Screen.SetResolution(1280, 720, false);
+
         //public GameObject playerPrefab;
         // 配列の実態の作成と初期化
         map = new int[,] {
