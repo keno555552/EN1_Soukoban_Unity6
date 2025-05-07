@@ -13,6 +13,7 @@ public class GameManagerScript : MonoBehaviour
     //[SerializeField] private float attack;
     //[SerializeField] private float health;
     public GameObject boxPrefab;
+    public GameObject TargetBox = null;
 
     public GameObject clearText;
 
@@ -37,7 +38,7 @@ public class GameManagerScript : MonoBehaviour
     {
         // Vector2Int形の可変長配列を作成
         List<Vector2Int> goals = new List<Vector2Int>();
-        for(int y = 0; y < map.GetLength(0); y++)
+        for (int y = 0; y < map.GetLength(0); y++)
         {
             for (int x = 0; x < map.GetLength(1); x++)
             {
@@ -54,13 +55,28 @@ public class GameManagerScript : MonoBehaviour
         {
             GameObject f = objectMap[goals[i].y, goals[i].x];
             if (f == null || f.tag != "Box")
-            { 
+            {
                 // 一つでも箱がなかったら条件未達成
-                return false; 
+                return false;
             }
         }
         // 条件未達成でなければ条件達成
         return true;
+    }
+
+    private void CheckGameClearStatus()
+    {
+        // ゲームクリア判定
+        if (IsCleard())
+        {
+            // ゲームオブジェクトのSetActiveメソッドを使い有効化
+            clearText.SetActive(true);
+        }
+        else
+        {
+            // ゲームオブジェクトのSetActiveメソッドを使い無効化
+            clearText.SetActive(false);
+        }
     }
 
     /// <summary>
@@ -144,7 +160,7 @@ public class GameManagerScript : MonoBehaviour
                 {
                     objectMap[y, x] = Instantiate(
                         playerPrefab,
-                       GetPositionByIndex(x,y),
+                       GetPositionByIndex(x, y),
                         Quaternion.identity
                     );
                 }
@@ -152,6 +168,14 @@ public class GameManagerScript : MonoBehaviour
                 {
                     objectMap[y, x] = Instantiate(
                         boxPrefab,
+                        GetPositionByIndex(x, y),
+                        Quaternion.identity
+                    );
+                }
+                if (map[y, x] == 3)
+                {
+                    objectMap[y, x] = Instantiate(
+                        TargetBox,
                         GetPositionByIndex(x, y),
                         Quaternion.identity
                     );
@@ -170,6 +194,7 @@ public class GameManagerScript : MonoBehaviour
             MoveObject(
                 playerIndex,
                 playerIndex + new Vector2Int(1, 0));
+            CheckGameClearStatus();
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
@@ -177,6 +202,7 @@ public class GameManagerScript : MonoBehaviour
             MoveObject(
                 playerIndex,
                 playerIndex - new Vector2Int(1, 0));
+            CheckGameClearStatus();
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
@@ -184,6 +210,7 @@ public class GameManagerScript : MonoBehaviour
             MoveObject(
                 playerIndex,
                 playerIndex - new Vector2Int(0, 1));
+            CheckGameClearStatus();
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
@@ -191,18 +218,10 @@ public class GameManagerScript : MonoBehaviour
             MoveObject(
                 playerIndex,
                 playerIndex + new Vector2Int(0, 1));
+            CheckGameClearStatus();
         }
 
-        // ゲームクリア判定
-        if (IsCleard())
-        {
-            // ゲームオブジェクトのSetActiveメソッドを使い有効化
-            clearText.SetActive(true);
-        }
-        else
-        {
-            // ゲームオブジェクトのSetActiveメソッドを使い無効化
-            clearText.SetActive(false);
-        }
     }
+
+
 }
