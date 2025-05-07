@@ -15,6 +15,11 @@ public class GameManagerScript : MonoBehaviour
     public GameObject boxPrefab;
     public GameObject TargetBox = null;
 
+    // パーティクルプレハブ割り当て用。パーティクルプレハブには
+    // Particleコンポーネントが割り当てられてるはずなので、
+    // Particle型で宣言する。
+    public Particle particlePrefab;
+
     public GameObject clearText;
 
     //private void PrintArray()
@@ -82,8 +87,8 @@ public class GameManagerScript : MonoBehaviour
     /// <summary>
     /// 二次元配列のインデックスから、ワールド座標を取得する
     /// </summary>
-    /// <param name="xIndex"></param>
-    /// <param name="yIndex"></param>
+    /// <param name="xIndex">インデックスのX</param>
+    /// <param name="yIndex">インデックスのY</param>
     /// <returns>世界空間上の座標</returns>
     Vector3 GetPositionByIndex(int xIndex, int yIndex)
     {
@@ -124,11 +129,21 @@ public class GameManagerScript : MonoBehaviour
 
         // 移動処理
         //objectMap[moveFrom.y, moveFrom.x].transform.position = GetPositionByIndex(moveTo.x, moveTo.y);
-        Vector3 moveToPosition = new Vector3( moveTo.x, map.GetLength(0) - moveTo.y,0 );
+        Vector3 moveToPosition = new Vector3(moveTo.x, map.GetLength(0) - moveTo.y, 0);
         objectMap[moveFrom.y, moveFrom.x].GetComponent<Move>().MoveTo(moveToPosition);
 
         objectMap[moveTo.y, moveTo.x] = objectMap[moveFrom.y, moveFrom.x];
         objectMap[moveFrom.y, moveFrom.x] = null;
+
+        // パーティクルを5個生成
+        for (int i = 0; i < 5; i++)
+        {
+            Particle particle = Instantiate(
+                particlePrefab,
+                GetPositionByIndex(moveFrom.x, moveFrom.y),
+                Quaternion.identity);
+        }
+
         return true;
     }
 

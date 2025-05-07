@@ -511,6 +511,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 4123267847869936443, guid: 320cf8af56fd22744b7386dcf48b9f1e, type: 3}
   boxPrefab: {fileID: 1969390501873448189, guid: 1c5cbc0d9b03da248b4e35c8588b9c74, type: 3}
   TargetBox: {fileID: 4564509577840408616, guid: 1f1bea807b11ffe4082c875d8a563897, type: 3}
+  particlePrefab: {fileID: -4308362766838973798, guid: 8f3c2e8a76d7a004e9bf0fefde8f5824, type: 3}
   clearText: {fileID: 1319214142}
 --- !u!4 &617362226
 Transform:
