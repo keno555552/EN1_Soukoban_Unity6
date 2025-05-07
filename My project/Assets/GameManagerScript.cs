@@ -123,8 +123,10 @@ public class GameManagerScript : MonoBehaviour
         }
 
         // 移動処理
-        objectMap[moveFrom.y, moveFrom.x].transform.position =
-            GetPositionByIndex(moveTo.x, moveTo.y);
+        //objectMap[moveFrom.y, moveFrom.x].transform.position = GetPositionByIndex(moveTo.x, moveTo.y);
+        Vector3 moveToPosition = new Vector3( moveTo.x, map.GetLength(0) - moveTo.y,0 );
+        objectMap[moveFrom.y, moveFrom.x].GetComponent<Move>().MoveTo(moveToPosition);
+
         objectMap[moveTo.y, moveTo.x] = objectMap[moveFrom.y, moveFrom.x];
         objectMap[moveFrom.y, moveFrom.x] = null;
         return true;
